@@ -3,6 +3,7 @@ package com.javainuse.service;
 import org.apache.catalina.authenticator.SpnegoAuthenticator.AcceptAction;
 import org.springframework.stereotype.Service;
 
+import com.javainuse.dto.StatusDTO;
 import com.javainuse.model.AcceptedComplains;
 
 
@@ -11,5 +12,5 @@ import com.javainuse.model.AcceptedComplains;
 public interface ComplaintActionService {
 
 	
-    //public StatusDTO getStatus(long compid)throws AdminExpections;
+    public StatusDTO getStatus(long compid)throws Exception;
 }

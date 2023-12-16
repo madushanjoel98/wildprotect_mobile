@@ -18,24 +18,21 @@ import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
-import wild.protection.controllers.admins.LoginController;
-import wild.protection.dto.request.AcceptCompalinDTO;
-import wild.protection.dto.request.ByIDRequest;
-import wild.protection.models.PublicComplain;
-import wild.protection.models.PublicLogin;
-import wild.protection.repository.CountriesRepository;
-import wild.protection.repository.PublicComplainRepository;
-import wild.protection.service.ComplainService;
-import wild.protection.service.ComplaintActionService;
-import wild.protection.service.PublicSeesionService;
-import wild.protection.utils.Commoncontexts;
-import wild.protection.utils.JSONObj_Serial;
+import com.javainuse.dao.CountriesRepository;
+import com.javainuse.dao.PublicComplainRepository;
+import com.javainuse.dto.ByIDRequest;
+import com.javainuse.model.PublicComplain;
+import com.javainuse.model.PublicLogin;
+import com.javainuse.service.ComplainService;
+import com.javainuse.service.ComplaintActionService;
+import com.javainuse.utils.UserContextUsage;
 
-@Controller
+
+
+@RestController
 @RequestMapping("/public")
 public class PublicDashboardController {
-	@Autowired
-	PublicSeesionService publicSeesionService;
+	
 	@Autowired
 	PublicComplainRepository complainRepository;
 	@Autowired
@@ -43,47 +40,32 @@ public class PublicDashboardController {
 	
 	@Autowired
 	ComplainService complainService; 
-	
+	@Autowired
+	UserContextUsage contextUsage;
 	
 	@Autowired
 	ComplaintActionService complaintActionService;
 
-	 Logger logger = LoggerFactory.getLogger(LoginController.class);
-	@GetMapping("/dashbord")
-	public String dashborad(Model model, HttpSession session, RedirectAttributes attributes) {
-		if (publicSeesionService.logedpublic(session) == null) {
-			attributes.addFlashAttribute("error", "Please Sign UP");
-			return "redirect:/public/login";
-		}
-		model.addAttribute("allcompains", complainRepository.findByPublicid(publicSeesionService.logedpublic(session)));
-		model.addAttribute("country", countriesRepository.findAll());
-		model.addAttribute("complainr", new PublicComplain());
+	 Logger logger = LoggerFactory.getLogger(PublicDashboardController.class);
 	
-		model.addAttribute("user", publicSeesionService.logedpublic(session));
-		model.addAttribute(Commoncontexts.PAGE_MODEL, "/public/dashboard/dashboardmain.html");
-		return "velonicpage.html";
-	}
 
 	@PostMapping("/addComplaint")
-	public String addComplain(RedirectAttributes attributes, HttpSession session,
-			@ModelAttribute @Valid PublicComplain complain, BindingResult bindingResult) {
-		if (publicSeesionService.logedpublic(session) == null) {
-			attributes.addFlashAttribute("error", "Please Sign UP");
-			return "redirect:/public/login";
-		}
-		if (bindingResult.hasErrors()) {
-			attributes.addFlashAttribute("error", "Error: " + bindingResult.getFieldError().getDefaultMessage());
-			return "redirect:/public/dashbord";
-		}
+	public String addComplain(@RequestBody
+		PublicComplain complain) {
+		
+//		if (bindingResult.hasErrors()) {
+//			attributes.addFlashAttribute("error", "Error: " + bindingResult.getFieldError().getDefaultMessage());
+//			return "redirect:/public/dashbord";
+//		}
 		try {
-			PublicLogin loged = publicSeesionService.logedpublic(session);
+			PublicLogin loged = contextUsage.getLoginUSER();
 			complain.setComplaintDate(new Date());
 			complain.setPublicid(loged);
 			complainRepository.save(complain);
-			attributes.addFlashAttribute("success", "complain added");
+		
 		} catch (Exception e) {
 			logger.error(e.getMessage());
-			attributes.addFlashAttribute("error", e.getMessage());
+		
 			return "redirect:/public/dashbord";
 		}
 
@@ -94,19 +76,16 @@ public class PublicDashboardController {
 	@GetMapping(value = "/deleteComplain")
 	public String delete(@RequestParam(value = "comid") long compid, RedirectAttributes redirectAttributes,
 			HttpSession session) {
-		if (publicSeesionService.logedpublic(session) == null) {
-			redirectAttributes.addFlashAttribute("error", "Please Sign UP");
-			return "redirect:/public/login";
-		}
+	
 		try {
 			PublicComplain complain = complainRepository.findById(compid).get();
 			long comps = complain.getPublicid().getPublicid();
-			if (publicSeesionService.logedpublic(session).getPublicid() != comps) {
+			if (contextUsage.getLoginUSER().getPublicid() != comps) {
 				redirectAttributes.addFlashAttribute("error", " don't match with id");
 				return "redirect:/public/dashbord";
 			}
 			complainRepository.deleteById(compid);
-			redirectAttributes.addFlashAttribute(Commoncontexts.SUCCESS, "Comlain Successfully deleted");
+			//redirectAttributes.addFlashAttribute(Commoncontexts.SUCCESS, "Comlain Successfully deleted");
 		} catch (Exception e) {
 			logger.error(e.getMessage());
 			redirectAttributes.addFlashAttribute("error", e.getMessage());
@@ -119,10 +98,7 @@ public class PublicDashboardController {
 	@PostMapping(value = "/getbyComplainID")
 	private ResponseEntity<?> findbyComlainID(@RequestBody ByIDRequest request, HttpSession session) {
 		ResponseEntity<?> output = null;
-		if (publicSeesionService.logedpublic(session) == null) {
-			output = new ResponseEntity<>("ERROR user not Found", HttpStatus.BAD_REQUEST);
-			return output;
-		}
+	
 		try {
 			PublicComplain complain = complainRepository.findById(request.getId()).get();
 
@@ -138,20 +114,17 @@ public class PublicDashboardController {
 	private String updateComplain(@ModelAttribute PublicComplain publicxom, HttpSession session,
 			RedirectAttributes redirectAttributes) {
 		// Check if the user is logged in
-		if (publicSeesionService.logedpublic(session) == null) {
-			redirectAttributes.addFlashAttribute("error", "Please Sign UP");
-			return "redirect:/public/login";
-		}
+		
 
 		try {
 			// Find the complaint by its ID
 			complainService.update(publicxom.getPcompId(), publicxom);
 			// Set a success message
-			redirectAttributes.addFlashAttribute(Commoncontexts.SUCCESS, "Complain Updated");
+			
 		} catch (Exception e) {
 			logger.error(e.getMessage());
 			// If an exception occurs, set an error message and redirect to the dashboard
-			redirectAttributes.addFlashAttribute(Commoncontexts.ERROR, e.getMessage());
+			
 			return "redirect:/public/dashbord?";
 		}
 
@@ -159,12 +132,9 @@ public class PublicDashboardController {
 		return "redirect:/public/dashbord";
 	}
 	@PostMapping(value = "/getStatus")
-	private ResponseEntity<?> getStatus(@RequestBody ByIDRequest request, HttpSession session) {
+	private ResponseEntity<?> getStatus(@RequestBody ByIDRequest request) {
 		ResponseEntity<?> output = null;
-		if (publicSeesionService.logedpublic(session) == null) {
-			output = new ResponseEntity<>("ERROR user not Found", HttpStatus.BAD_REQUEST);
-			return output;
-		}
+		
 		try {
 			
 			output = new ResponseEntity<>(complaintActionService.getStatus(request.getId()), HttpStatus.OK);
