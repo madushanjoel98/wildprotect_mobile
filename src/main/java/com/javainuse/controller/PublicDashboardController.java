@@ -6,6 +6,7 @@ import javax.persistence.EntityNotFoundException;
 import javax.servlet.http.HttpSession;
 import javax.validation.Valid;
 
+import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -21,10 +22,12 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import com.javainuse.dao.CountriesRepository;
 import com.javainuse.dao.PublicComplainRepository;
 import com.javainuse.dto.ByIDRequest;
+import com.javainuse.dto.request.AddComplainDTO;
 import com.javainuse.model.PublicComplain;
 import com.javainuse.model.PublicLogin;
 import com.javainuse.service.ComplainService;
 import com.javainuse.service.ComplaintActionService;
+import com.javainuse.utils.Commons;
 import com.javainuse.utils.UserContextUsage;
 
 
@@ -49,27 +52,28 @@ public class PublicDashboardController {
 	 Logger logger = LoggerFactory.getLogger(PublicDashboardController.class);
 	
 
-	@PostMapping("/addComplaint")
-	public String addComplain(@RequestBody
-		PublicComplain complain) {
-		
-//		if (bindingResult.hasErrors()) {
-//			attributes.addFlashAttribute("error", "Error: " + bindingResult.getFieldError().getDefaultMessage());
-//			return "redirect:/public/dashbord";
-//		}
+	@PostMapping(value = "/addComplaint",produces = MediaType.APPLICATION_JSON_VALUE,consumes = MediaType.APPLICATION_JSON_VALUE )
+	public ResponseEntity<?> addComplain(@Valid @RequestBody
+		AddComplainDTO complain,BindingResult bindingResult) {
+		ResponseEntity<?> output=null;
+		JSONObject object=new JSONObject();
+		if (bindingResult.hasErrors()) {
+			object.put(Commons.MESSAGE, bindingResult.getFieldError().getDefaultMessage());
+			output=new ResponseEntity(object.toString(), HttpStatus.BAD_REQUEST);
+			return output;
+		}
 		try {
-			PublicLogin loged = contextUsage.getLoginUSER();
-			complain.setComplaintDate(new Date());
-			complain.setPublicid(loged);
-			complainRepository.save(complain);
-		
+			complainService.addComplain(complain, contextUsage.getLoginUSER());
+			object.put(Commons.MESSAGE, "Complain added Successfully");
+			output=new ResponseEntity(object.toString(), HttpStatus.OK);
 		} catch (Exception e) {
 			logger.error(e.getMessage());
+			object.put(Commons.MESSAGE, e.getMessage());
+			output=new ResponseEntity(object.toString(), HttpStatus.BAD_REQUEST);
 		
-			return "redirect:/public/dashbord";
 		}
 
-		return "redirect:/public/dashbord";
+		return output;
 
 	}
 

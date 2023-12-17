@@ -2,22 +2,32 @@ package com.javainuse.controller;
 
 import java.util.Objects;
 
+import javax.validation.Valid;
+
+import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.DisabledException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.CrossOrigin;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 import com.javainuse.service.JwtUserDetailsService;
-
+import com.javainuse.service.LoginService;
+import com.javainuse.utils.Commons;
+import com.javainuse.utils.JSONObj_Serial;
 import com.javainuse.config.JwtTokenUtil;
 import com.javainuse.dao.PublicLoginRepository;
+import com.javainuse.dto.request.RegisterUserDTO;
 import com.javainuse.model.JwtRequest;
 import com.javainuse.model.JwtResponse;
 import com.javainuse.model.PublicLogin;
@@ -37,7 +47,8 @@ public class JwtAuthenticationController {
 	private JwtUserDetailsService userDetailsService;
 	@Autowired
 	private PublicLoginRepository loginRepository;
-
+@Autowired
+LoginService loginService;
 	@RequestMapping(value = "/authenticate", method = RequestMethod.POST)
 	public ResponseEntity<?> createAuthenticationToken(@RequestBody JwtRequest authenticationRequest) throws Exception {
 
@@ -51,10 +62,27 @@ public class JwtAuthenticationController {
 		return ResponseEntity.ok(response);
 	}
 
-//	@RequestMapping(value = "/register", method = RequestMethod.POST)
-//	public ResponseEntity<?> saveUser(@RequestBody UserDTO user) throws Exception {
-//		return ResponseEntity.ok(userDetailsService.save(user));
-//	}
+	@PostMapping(value = "/register", produces = MediaType.APPLICATION_JSON_VALUE)
+	public ResponseEntity<?> saveUser(@Valid
+			@RequestBody RegisterUserDTO user,BindingResult bindingResult) throws Exception {
+		ResponseEntity<?>output=null;
+		JSONObject obj=new JSONObject();
+		try {
+			if (bindingResult.hasErrors()) {
+				obj.put(Commons.MESSAGE, bindingResult.getFieldError().getDefaultMessage());
+				output=new ResponseEntity(obj.toString(), HttpStatus.BAD_REQUEST);
+				return output;
+			}
+			PublicLogin log=loginService.register(user);
+			 obj.put(Commons.MESSAGE, "Register Success");
+			 obj.put("data",JSONObj_Serial.toJSONObject("user", log));
+			output=new ResponseEntity(obj.toString(), HttpStatus.OK);
+		}catch (Exception e) {
+			 obj.put(Commons.MESSAGE,e.getMessage());
+			output=new ResponseEntity(obj.toString(), HttpStatus.BAD_REQUEST);
+		}
+		return output;
+	}
 
 	private void authenticate(String username, String password) throws Exception {
 		try {

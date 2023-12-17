@@ -36,14 +36,14 @@ public class Countries {
     private String name;
 
     @JsonIgnore
-    @OneToMany(mappedBy = "countryid")
+    @OneToMany(mappedBy = "countryid",fetch = FetchType.LAZY)
     private Set<Admin> countryidAdmins =new HashSet<>();
 
     @JsonIgnore
-    @OneToMany(mappedBy = "countryid")
+    @OneToMany(mappedBy = "countryid",fetch = FetchType.LAZY)
     private Set<PublicLogin> countryidPublicLogins =new HashSet<>();
     @JsonIgnore
-    @OneToMany(mappedBy = "pcompId")
+    @OneToMany(mappedBy = "pcompId",fetch = FetchType.LAZY)
     private Set<PublicComplain> publicComplain =new HashSet<>();;
 
     public Integer getId() {

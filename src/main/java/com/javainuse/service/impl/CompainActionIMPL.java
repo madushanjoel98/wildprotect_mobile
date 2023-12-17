@@ -7,6 +7,8 @@ import javax.persistence.EntityNotFoundException;
 import javax.transaction.Transactional;
 
 import org.apache.catalina.authenticator.SpnegoAuthenticator.AcceptAction;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -23,11 +25,14 @@ import com.javainuse.utils.UserContextUsage;
 
 
 
+
+
 @Service
 @Transactional
 public class CompainActionIMPL implements ComplaintActionService {
 	private final int ACCEPT = 1, REJECT = 2, PENDDING = 0;
-
+	final Logger logger = LoggerFactory.getLogger(CompainActionIMPL.class);
+	
 	@Autowired
 	ComplainService complainService;
 
