@@ -19,14 +19,14 @@ public class PublicLogin {
 	@GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "primary_sequence")
 	private Long publicid;
 
-	@Column(nullable = false, unique = true, length = 45)
+	@Column(nullable = false, unique = true, length = 100)
 	private String email;
 
-	@Column(unique = true, length = 45)
+	@Column(unique = true, length = 100)
 	private String mobilenumber;
 
 	@JsonIgnore
-	@Column(nullable = false, length = 512)
+	@Column(nullable = false, length = 10000)
 	private String password;
 
 	@JsonIgnore

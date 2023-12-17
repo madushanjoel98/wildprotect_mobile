@@ -2,6 +2,7 @@ package com.javainuse.dto.request;
 
 import javax.persistence.Column;
 import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.NotEmpty;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
@@ -9,7 +10,7 @@ public class RegisterUserDTO {
 private int countryID;
 
 
-@NotBlank(message = "Email can't to be blank")
+@NotEmpty(message = "Email can't to be blank")
 private String email;
 
 

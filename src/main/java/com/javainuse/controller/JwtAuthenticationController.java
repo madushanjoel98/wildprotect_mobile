@@ -2,6 +2,8 @@ package com.javainuse.controller;
 
 import java.util.Objects;
 
+import javax.validation.ConstraintViolation;
+import javax.validation.ConstraintViolationException;
 import javax.validation.Valid;
 
 import org.json.JSONObject;
@@ -47,39 +49,45 @@ public class JwtAuthenticationController {
 	private JwtUserDetailsService userDetailsService;
 	@Autowired
 	private PublicLoginRepository loginRepository;
-@Autowired
-LoginService loginService;
-	@RequestMapping(value = "/authenticate", method = RequestMethod.POST)
+	@Autowired
+	LoginService loginService;
+
+	@RequestMapping(value = "/authenticate", method = RequestMethod.POST,produces = MediaType.APPLICATION_JSON_VALUE)
 	public ResponseEntity<?> createAuthenticationToken(@RequestBody JwtRequest authenticationRequest) throws Exception {
+		try {
+			authenticate(authenticationRequest.getUsername(), authenticationRequest.getPassword());
 
-		authenticate(authenticationRequest.getUsername(), authenticationRequest.getPassword());
-
-		final UserDetails userDetails = userDetailsService.loadUserByUsername(authenticationRequest.getUsername());
-
-		final String token = jwtTokenUtil.generateToken(userDetails);
-		JwtResponse response = new JwtResponse(token);
-	response.setLogin(loginRepository.findByEmail(authenticationRequest.getUsername()).get());
-		return ResponseEntity.ok(response);
+			final UserDetails userDetails = userDetailsService.loadUserByUsername(authenticationRequest.getUsername());
+			
+			final String token = jwtTokenUtil.generateToken(userDetails);
+			JwtResponse response = new JwtResponse(token);
+			response.setLogin(loginRepository.findByEmail(authenticationRequest.getUsername()).get());
+			return ResponseEntity.ok(response);
+		} catch (Exception e) {
+			JSONObject obj = new JSONObject();
+			obj.put(Commons.MESSAGE, e.getMessage());
+			return new ResponseEntity(obj.toString(), HttpStatus.UNAUTHORIZED);
+		}
 	}
 
 	@PostMapping(value = "/register", produces = MediaType.APPLICATION_JSON_VALUE)
-	public ResponseEntity<?> saveUser(@Valid
-			@RequestBody RegisterUserDTO user,BindingResult bindingResult) throws Exception {
-		ResponseEntity<?>output=null;
-		JSONObject obj=new JSONObject();
+	public ResponseEntity<?> saveUser(@Valid @RequestBody RegisterUserDTO user, BindingResult bindingResult)
+			throws Exception {
+		ResponseEntity<?> output = null;
+		JSONObject obj = new JSONObject();
 		try {
 			if (bindingResult.hasErrors()) {
 				obj.put(Commons.MESSAGE, bindingResult.getFieldError().getDefaultMessage());
-				output=new ResponseEntity(obj.toString(), HttpStatus.BAD_REQUEST);
+				output = new ResponseEntity(obj.toString(), HttpStatus.BAD_REQUEST);
 				return output;
 			}
-			PublicLogin log=loginService.register(user);
-			 obj.put(Commons.MESSAGE, "Register Success");
-			 obj.put("data",JSONObj_Serial.toJSONObject("user", log));
-			output=new ResponseEntity(obj.toString(), HttpStatus.OK);
-		}catch (Exception e) {
-			 obj.put(Commons.MESSAGE,e.getMessage());
-			output=new ResponseEntity(obj.toString(), HttpStatus.BAD_REQUEST);
+			PublicLogin log = loginService.register(user);
+			obj.put(Commons.MESSAGE, "Register Success");
+			obj.put("data", JSONObj_Serial.toJSONObject("user", log));
+			output = new ResponseEntity(obj.toString(), HttpStatus.OK);
+		} catch (Exception e) {
+			obj.put(Commons.MESSAGE, e.getMessage());
+			output = new ResponseEntity(obj.toString(), HttpStatus.BAD_REQUEST);
 		}
 		return output;
 	}

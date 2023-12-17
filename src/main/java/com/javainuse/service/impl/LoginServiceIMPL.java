@@ -37,6 +37,10 @@ public class LoginServiceIMPL implements LoginService{
 			if (logse.isPresent()) {
 				throw new Exception("User already Exits");
 			}
+			if(dto.getPassword().length()>16 || dto.getPassword().length()<8) {
+				String yourlength="Your password length "+dto.getPassword().length();
+				throw new Exception("Minmum length of the password is:16 and Maximum is 16."+yourlength);
+			}
 			Countries country = countriesRepository.findById(dto.getCountryID()).get();
 			output.setCountryid(country);
 			output.setMobilenumber(dto.getMobilenumber());

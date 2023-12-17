@@ -1,6 +1,7 @@
 package com.javainuse.controller;
 
 import java.util.Date;
+import java.util.List;
 
 import javax.persistence.EntityNotFoundException;
 import javax.servlet.http.HttpSession;
@@ -28,6 +29,7 @@ import com.javainuse.model.PublicLogin;
 import com.javainuse.service.ComplainService;
 import com.javainuse.service.ComplaintActionService;
 import com.javainuse.utils.Commons;
+import com.javainuse.utils.JSONObj_Serial;
 import com.javainuse.utils.UserContextUsage;
 
 
@@ -141,12 +143,25 @@ public class PublicDashboardController {
 		
 		try {
 			
-			output = new ResponseEntity<>(complaintActionService.getStatus(request.getId()), HttpStatus.OK);
+			//output = new ResponseEntity<>(JSONObj_Serial.toJSONObject("data",  complaintActionService.getStatus(request.getId()).to, HttpStatus.OK));
 		} catch (Exception e) {
 			logger.error(e.getMessage());
 			output = new ResponseEntity<>(e.getMessage(), HttpStatus.BAD_REQUEST);
 		}
 		return output;
 	}
-
+	@PostMapping(value = "/myComplains",produces = MediaType.APPLICATION_JSON_VALUE)
+	private ResponseEntity<?> myComplains() {
+		ResponseEntity<?> output = null;
+	
+		try {
+			
+   List<PublicComplain> mylist=complainRepository.findByPublicid(contextUsage.getLoginUSER());
+			output = new ResponseEntity<>(JSONObj_Serial.toJSONArray("data", mylist).toString(), HttpStatus.OK);
+		} catch (Exception e) {
+			logger.error(e.getMessage());
+			output = new ResponseEntity<>(e.getMessage(), HttpStatus.BAD_REQUEST);
+		}
+		return output;
+	}
 }
