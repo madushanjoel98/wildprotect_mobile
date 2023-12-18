@@ -137,16 +137,20 @@ public class PublicDashboardController {
 		// Redirect to the login page
 		return "redirect:/public/dashbord";
 	}
-	@PostMapping(value = "/getStatus")
+	@PostMapping(value = "/getStatus",produces = MediaType.APPLICATION_JSON_VALUE)
 	private ResponseEntity<?> getStatus(@RequestBody ByIDRequest request) {
 		ResponseEntity<?> output = null;
+		JSONObject object=new JSONObject();
 		
 		try {
-			
-			//output = new ResponseEntity<>(JSONObj_Serial.toJSONObject("data",  complaintActionService.getStatus(request.getId()).to, HttpStatus.OK));
+			//object.put("data", new JSONObject(c));
+			object=JSONObj_Serial.toJSONObject("data", complaintActionService.getStatus(request.getId()));
+			object.put(Commons.MESSAGE, "Success");
+	   	output = new ResponseEntity(object.toString(), HttpStatus.OK);
 		} catch (Exception e) {
+			object.put(Commons.MESSAGE, e.getMessage());
 			logger.error(e.getMessage());
-			output = new ResponseEntity<>(e.getMessage(), HttpStatus.BAD_REQUEST);
+			output = new ResponseEntity<>(object.toString(), HttpStatus.BAD_REQUEST);
 		}
 		return output;
 	}

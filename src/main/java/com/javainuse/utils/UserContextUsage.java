@@ -22,9 +22,14 @@ public class UserContextUsage {
 	@Autowired
 	PublicLoginRepository userRepository;
 	public  PublicLogin getLoginUSER() {
+		PublicLogin output=null;
 		Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-		Optional<PublicLogin> u = userRepository.findByEmail(auth.getName());
-		return u.get();
+		if(auth!=null) {
+			Optional<PublicLogin> u = userRepository.findByEmail(auth.getName());
+			output=u.get();
+		}
+		
+		return output;
 	}
 	public void functionUsageLogger(String message) {
     logger.info(getLoginUSER().getEmail()+":"+message);

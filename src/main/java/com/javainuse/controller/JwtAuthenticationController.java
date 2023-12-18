@@ -65,6 +65,7 @@ public class JwtAuthenticationController {
 			return ResponseEntity.ok(response);
 		} catch (Exception e) {
 			JSONObject obj = new JSONObject();
+		
 			obj.put(Commons.MESSAGE, e.getMessage());
 			return new ResponseEntity(obj.toString(), HttpStatus.UNAUTHORIZED);
 		}

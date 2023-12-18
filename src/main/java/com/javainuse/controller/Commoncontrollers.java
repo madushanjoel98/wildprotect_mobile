@@ -9,6 +9,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -23,7 +24,7 @@ public class Commoncontrollers {
 
 	@Autowired
 	CountriesRepository countriesRepository;
-	@GetMapping (value="/allContries",produces = MediaType.APPLICATION_JSON_VALUE)
+	@PostMapping (value="/allContries",produces = MediaType.APPLICATION_JSON_VALUE)
 	ResponseEntity<?> getContries(){
 		ResponseEntity<?> output=null;
 		JSONObject jsonObject=new JSONObject();
